@@ -1,0 +1,70 @@
+/* Import AFTER index.css so these overrides win */
+html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+
+/* ---------- Tablet / phone ---------- */
+@media (max-width: 760px) {
+  header, main { padding-left: 16px; padding-right: 16px; }
+
+  /* Header: brand + tools on row 1, nav on row 2 */
+  header { flex-wrap: wrap; gap: 8px 12px; padding-top: 14px; padding-bottom: 8px; }
+  .brand { margin-right: 0; }
+  .tools { margin-left: auto; gap: 4px; }
+  .trophy { width: 40px; height: 40px; }
+  .nav { order: 3; width: 100%; justify-content: space-between; }
+  .nav a, .nav .off { padding: 8px 12px; }
+
+  /* Home: palette card, panels move below the text */
+  .pal { min-height: 640px; padding: 24px; }
+  .pp.pos0 { top: 175px; right: calc(50% - 105px); }
+  .pp.pos1 { top: 200px; right: -150px; }
+  .pp.pos2 { top: 200px; right: -300px; }
+
+  .card h2 { font-size: 2rem; }
+  .card.soon { min-height: 190px; }
+
+  /* Bests */
+  .bests { padding: 20px 20px 10px; border-radius: 28px; }
+  .bhead { flex-wrap: wrap; gap: 12px; }
+
+  /* Footer */
+  .foot { justify-content: center; text-align: center; }
+  .foot .fl { justify-content: center; }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width: 480px) {
+  /* Game screens (intro / daily / board / final) */
+  .intro { padding: 22px; min-height: 560px; border-radius: 28px; }
+  .intro h1 { font-size: 3.8rem; }
+  .intro .lead { white-space: normal; }
+  .laurel, button.laurel { top: 20px; right: 20px; }
+
+  .introbar { gap: 12px; }
+  .introbar .row { gap: 10px; }
+  .round { width: 54px; height: 54px; }
+  .round.daily { width: 64px; height: 64px; }
+
+  .dbtns { gap: 8px; }
+  .dbtns button, input.outl { height: 52px; }
+  .outl { flex: 0 0 96px; }
+  .past { right: 22px; bottom: 100px; }
+
+  /* Round cards: fit the screen height instead of a fixed 590px */
+  .rcard { height: min(590px, calc(100dvh - 170px)); min-height: 460px; border-radius: 24px; }
+  .tl b { font-size: 3.2rem; }
+  .sc2 b { font-size: 3.6rem; }
+  .cnt h1 { font-size: 4.2rem; }
+
+  /* Final screen */
+  .fin { padding: 22px; }
+  .fin .score { font-size: 3.4rem; }
+  .fin .cols { gap: 6px; }
+
+  /* Leaderboard */
+  .lb .tabs button { padding: 8px 14px; }
+
+  /* Achievements modal */
+  .ach { height: min(560px, 88dvh); padding: 22px 20px 0; border-radius: 20px; }
+  .ach h2 { font-size: 26px; }
+  .ach-x { top: 18px; right: 18px; }
+}
