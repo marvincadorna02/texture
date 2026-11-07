@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { rng, rgb, today, load, save } from '../lib/color'
+import { rgb, today, load, save } from '../lib/color'
 import Laurel from '../components/Laurel'
 
 const hsl = (h, s, l) => {
@@ -24,6 +24,18 @@ const finalMsg = t => t >= 45 ? 'Spot on. Your eyes are dialed in.'
 const HUE = `linear-gradient(${[...Array(13)].map((_, k) => `hsl(${360 - k * 30},80%,55%)`).join(',')})`
 const WORDS = [['ready', '#ff4455'], ['set', '#f5c518'], ['go', '#2fbf4f']]
 const SAT = 65
+
+// Solo ug Daily: bag-o gyud nga colors kada pindot (Math.random, walay seed).
+// Ang 5 ka hue gi-spread para dili magkaduol, unya gi-shuffle.
+const randomColors = () => {
+  const base = Math.random() * 360
+  const hues = [...Array(5)].map((_, k) => (base + k * 72 + (Math.random() - 0.5) * 40 + 360) % 360)
+  for (let k = hues.length - 1; k > 0; k--) {
+    const j = Math.floor(Math.random() * (k + 1))
+    ;[hues[k], hues[j]] = [hues[j], hues[k]]
+  }
+  return hues.map(h => hsl(h, SAT, 30 + Math.random() * 45))
+}
 
 const BK = 'dt_board'
 const readBoard = () => { try { return JSON.parse(localStorage.getItem(BK)) || [] } catch { return [] } }
@@ -110,8 +122,7 @@ export default function Palette() {
   const freshMix = () => setM([Math.random(), 0.5])
 
   const start = isDaily => {
-    const r = rng(isDaily ? today() : String(Math.random()))
-    setTargets([...Array(5)].map(() => hsl(r() * 360, SAT, 30 + r() * 45)))
+    setTargets(randomColors())
     setDaily(isDaily); setI(0); setScores([]); setMixes([]); freshMix(); setWi(0); setPhase('count')
   }
 
