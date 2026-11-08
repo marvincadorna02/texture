@@ -24,11 +24,6 @@ const B = {
 }
 const cols = ['#2fd9a0', '#f2c230']
 
-const panels = [
-  { c: '#d4524a', h: [48] },
-  { c: '#7ddc7a', h: [17, 70] },
-]
-
 const order = ['res', 'rainbow', 'blue']
 
 function useTween(goal, up) {
@@ -51,7 +46,7 @@ function useTween(goal, up) {
   return v
 }
 
-function Panel({ type, v, pn, demo }) {
+function Panel({ type, v, demo }) {
   if (type === 'res') return (
     <>
       <span className="x3">×</span>
@@ -87,14 +82,15 @@ function Panel({ type, v, pn, demo }) {
       <div className="mix"><small>Your mix</small><small>#1B2A8A</small></div>
     </>
   )
+  // rainbow: ang kolor ug knobs gi-animate sa CSS (.pal.hov .pn / .hue i)
   return (
     <>
-      <div className="pn" style={{ background: pn.c }}>
+      <div className="pn">
         <small>2 / 5</small>
         <span>Bring that color back.</span>
       </div>
       <div className="hue">
-        {pn.h.map(t => <i key={t} style={{ top: t + '%' }} />)}
+        <i /><i />
       </div>
     </>
   )
@@ -107,7 +103,6 @@ export default function Home() {
   const [hc, setHc] = useState(0)
   const [hov, setHov] = useState(false)
   const s = n % 3
-  const pn = panels[hov ? 1 : 0]
   const shown = useTween(hov ? B.score : A.score, hov)
   const q = Math.min(Math.max((shown - A.score) / (B.score - A.score), 0), 1)
   const demo = {
@@ -118,7 +113,7 @@ export default function Home() {
 
   return (
     <>
-      <p style={{ color: 'var(--mut)' }}>Small games for big brains. No sign-in needed.</p>
+      <p className="hello">Small games for big brains. <b>No sign-in needed.</b></p>
       <div className="grid">
         <div
           className={'card click pal' + (hov ? ' hov' : '')}
@@ -146,7 +141,7 @@ export default function Home() {
 
           {order.map((t, i) => (
             <div key={t} className={'pp ' + t + ' pos' + ((i - s + 3) % 3)}>
-              <Panel type={t} v={shown} pn={pn} demo={demo} />
+              <Panel type={t} v={shown} demo={demo} />
             </div>
           ))}
         </div>

@@ -329,3 +329,103 @@ img.flogo{width:16px;height:16px;border-radius:0;background:none;object-fit:cont
 .round.daily:hover::after{opacity:1;transform:none}
 .cal-dots{opacity:0;transition:opacity .2s}
 .round.daily:hover .cal-dots{opacity:1}
+.intro.lb .lbbody{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.intro.lb .rows li em{font-style:normal}
+button.laurel:hover svg{animation:none!important}
+.round:not(.daily){isolation:isolate;transition:transform .2s cubic-bezier(.2,.9,.3,1),color .2s}
+.round:not(.daily)::before{content:'';position:absolute;inset:0;border-radius:50%;z-index:-1;opacity:0;transition:opacity .25s;background:radial-gradient(circle,#ffffff55 0%,transparent 62%),conic-gradient(#ff6b8b,#ffb347,#f5e663,#7be495,#5ac8fa,#7b8cff,#c77dff,#ff6b8b);pointer-events:none}
+.round:not(.daily):hover{color:#fff;transform:scale(1.05)}
+.round:not(.daily):hover::before{opacity:1;animation:spin .6s linear infinite}
+.round .soonb{z-index:2}
+@keyframes shake {
+  0%   { transform: translate(0, 0) rotate(0); }
+  10%  { transform: translate(-.7px, .4px) rotate(-.1deg); }
+  20%  { transform: translate(.6px, -.5px) rotate(.08deg); }
+  30%  { transform: translate(-.4px, -.7px) rotate(-.06deg); }
+  40%  { transform: translate(.8px, .3px) rotate(.11deg); }
+  50%  { transform: translate(-.6px, .5px) rotate(-.08deg); }
+  60%  { transform: translate(.4px, -.4px) rotate(.06deg); }
+  70%  { transform: translate(-.8px, -.2px) rotate(-.1deg); }
+  80%  { transform: translate(.5px, .6px) rotate(.08deg); }
+  90%  { transform: translate(-.3px, -.5px) rotate(-.04deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+.intro.wig.wig-d {
+  transform-origin: 50% 50%;
+  animation: shake .4s steps(1, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro.wig.wig-d { animation: none; }
+}
+@property --ph { syntax: '<number>'; inherits: false; initial-value: 3.5; }
+@property --ps { syntax: '<percentage>'; inherits: false; initial-value: 61.6%; }
+@property --pl { syntax: '<percentage>'; inherits: false; initial-value: 56%; }
+.pal .pn {
+  background: hsl(var(--ph) var(--ps) var(--pl));
+  transition: --ph .5s cubic-bezier(.4,0,.2,1), --ps .5s cubic-bezier(.4,0,.2,1), --pl .5s cubic-bezier(.4,0,.2,1);
+}
+.pal.hov .pn { --ph: 118; --ps: 58%; --pl: 67%; }
+.pal .hue i { transition: top .5s cubic-bezier(.4,0,.2,1), opacity .25s ease; }
+.pal .hue i:nth-child(1) { top: 48%; }
+.pal .hue i:nth-child(2) { top: 70%; opacity: 0; }
+.pal.hov .hue i:nth-child(1) { top: 17%; }
+.pal.hov .hue i:nth-child(2) { opacity: 1; transition-delay: .25s; }
+.pp.pos0 { top: 110px; }
+.pp.pos1,
+.pp.pos2 { top: 134px; }
+header{padding:10px 20px;gap:14px}
+.brand{font-size:.95rem;gap:7px;margin-right:8px;text-transform:none;letter-spacing:-.01em!important}
+.brand img{width:18px;height:18px}
+.nav{gap:0}
+.nav a,.nav .off{padding:5px 12px;font-size:.88rem}
+.tools{gap:6px}
+.icon{padding:6px}
+.icon svg{width:16px;height:16px}
+.trophy{width:32px;height:32px}
+.trophy svg{width:15px;height:15px}
+header,main,.foot:not(.rc .foot){
+  max-width:none;
+  width:min(980px,calc(100% - 40px));
+  margin-left:auto;
+  margin-right:auto;
+  padding-left:0;
+  padding-right:0;
+}
+header{padding-top:18px;padding-bottom:18px}
+main{padding-top:0;padding-bottom:0}
+.intro,.rcard,.res{margin-top:5px}
+.foot:not(.rc .foot){
+  margin-top:20px;
+  padding-top:12px;
+  padding-bottom:24px;
+  border-top:0;
+}
+.foot:not(.rc .foot){justify-content:flex-end}
+.intro h1 span{color:#ee6b7b}
+.intro h1 span.hd{color:#e8a05a}
+.flinks{gap:20px}
+.flinks button{font-size:.75rem;font-weight:600!important}
+.foot:not(.rc .foot){margin-top:34px;padding-bottom:28px}
+.intro,.rcard,.res{margin-top:28px}
+html:has(.intro,.rcard),
+html:has(.intro,.rcard) body{
+  height:100dvh;
+  overflow:hidden;
+}
+html:has(.intro,.rcard) #root{
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+html:has(.intro,.rcard) main{
+  flex:1;
+  min-height:0;
+}
+html:has(.intro,.rcard) .foot:not(.rc .foot){
+  margin-top:0;
+  padding-top:8px;
+  padding-bottom:16px;
+}
+.hello{font-size:.85rem;color:var(--mut);margin:0 0 14px}
+.hello b{color:var(--fg);font-weight:600!important}

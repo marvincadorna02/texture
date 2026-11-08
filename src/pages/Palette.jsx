@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { rgb, today, load, save } from '../lib/color'
 import Laurel from '../components/Laurel'
+import '../glitch.css'
 
 const hsl = (h, s, l) => {
   s /= 100; l /= 100
@@ -37,8 +38,28 @@ const randomColors = () => {
 
 const BK = 'dt_board'
 const readBoard = () => { try { return JSON.parse(localStorage.getItem(BK)) || [] } catch { return [] } }
-const addScore = (mode, name, score) => {
-  try { localStorage.setItem(BK, JSON.stringify([...readBoard(), { mode, name, score, t: Date.now() }].slice(-500))) } catch {}
+const addScore = (name, score, diff, daily) => {
+  try {
+    const row = { mode: daily ? 'daily' : diff, diff, daily, name, score, t: Date.now() }
+    localStorage.setItem(BK, JSON.stringify([...readBoard(), row].slice(-500)))
+  } catch {}
+}
+
+// asa nga tab mo-gawas ang score (dili madoble ang daan nga records)
+const inTab = (r, tab) => {
+  const diff = r.diff ?? (r.mode === 'hard' ? 'hard' : r.mode === 'easy' ? 'easy' : null)
+  const isDaily = r.daily ?? r.mode === 'daily'
+  return tab === 'daily' ? isDaily : diff === tab
+}
+// usa ra ka row kada ngalan: ang pinakataas nga score
+const bestPerName = rows => {
+  const best = new Map()
+  for (const r of rows) {
+    const key = String(r.name).toLowerCase()
+    const cur = best.get(key)
+    if (!cur || r.score > cur.score) best.set(key, r)
+  }
+  return [...best.values()].sort((a, b) => b.score - a.score)
 }
 
 function useCountUp(target, run) {
@@ -82,8 +103,14 @@ export default function Palette() {
   const [phase, setPhase] = useState('intro')
   const [hard, setHard] = useState(false)
   const [tip, setTip] = useState(false)
+  const [tt, setTt] = useState(false)
+  const [glitch, setGlitch] = useState(false)
+  const glTimer = useRef(0)
+  const [wig, setWig] = useState('')
   const [tab, setTab] = useState('easy')
   const [lbLoad, setLbLoad] = useState(false)
+  const [listLoad, setListLoad] = useState(false)
+  const tabTimer = useRef(0)
   const [daily, setDaily] = useState(false)
   const [targets, setTargets] = useState([])
   const [i, setI] = useState(0)
@@ -108,9 +135,26 @@ export default function Palette() {
     try { localStorage.setItem('dt_tag', v) } catch {}
   }
 
+  // Easy <-> Hard: RGB-split glitch burst
+  const toggleHard = () => {
+    setHard(h => !h)
+    setGlitch(false)
+    clearTimeout(glTimer.current)
+    // gamay nga delay para ma-restart ang animation kung dali ra ang pag-toggle balik
+    glTimer.current = setTimeout(() => {
+      setGlitch(true)
+      glTimer.current = setTimeout(() => setGlitch(false), 340)
+    }, 20)
+  }
+
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => () => {
+    clearTimeout(tabTimer.current)
+    clearTimeout(glTimer.current)
   }, [])
 
   useLayoutEffect(() => {
@@ -119,6 +163,14 @@ export default function Palette() {
     const t = setTimeout(() => setLbLoad(false), 900)
     return () => clearTimeout(t)
   }, [phase])
+
+  const pickTab = t => {
+    if (t === tab) return
+    setTab(t)
+    setListLoad(true)
+    clearTimeout(tabTimer.current)
+    tabTimer.current = setTimeout(() => setListLoad(false), 600)
+  }
 
   const mid = new Date(now); mid.setHours(24, 0, 0, 0)
   const left = Math.max(0, mid - now)
@@ -185,7 +237,7 @@ export default function Palette() {
   const next = () => {
     if (i === 4) {
       const t = scores.reduce((a, b) => a + b, 0)
-      addScore(daily ? 'daily' : hard ? 'hard' : 'easy', me, +t.toFixed(2))
+      addScore(me, +t.toFixed(2), hard ? 'hard' : 'easy', daily)
       if (daily) { const db = load(); db[today()] = { total: t.toFixed(2) }; save(db) }
       setPhase('final')
     } else { setI(i + 1); freshMix(); setPhase('count') }
@@ -208,14 +260,14 @@ export default function Palette() {
   }
 
   const cal = (
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <rect x="3" y="5" width="18" height="16" rx="3" />
-    <path d="M8 3v4M16 3v4M3 10h18" />
-    <g className="cal-dots" fill="currentColor" stroke="none">
-      <circle cx="8" cy="14" r="1.1" /><circle cx="12" cy="14" r="1.1" /><circle cx="16" cy="14" r="1.1" />
-      <circle cx="8" cy="17.5" r="1.1" /><circle cx="12" cy="17.5" r="1.1" />
-    </g>
-  </svg>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <rect x="3" y="5" width="18" height="16" rx="3" />
+      <path d="M8 3v4M16 3v4M3 10h18" />
+      <g className="cal-dots" fill="currentColor" stroke="none">
+        <circle cx="8" cy="14" r="1.1" /><circle cx="12" cy="14" r="1.1" /><circle cx="16" cy="14" r="1.1" />
+        <circle cx="8" cy="17.5" r="1.1" /><circle cx="12" cy="17.5" r="1.1" />
+      </g>
+    </svg>
   )
 
   const closeX = (
@@ -233,14 +285,18 @@ export default function Palette() {
   )
 
   if (phase === 'intro') return (
-    <div className="intro">
+    <div className={'intro' + (hard ? ' hardfx' : '') + (glitch ? ' glitch' : '') + (wig ? ' wig wig-' + wig : '')}>
       <button className="laurel" onClick={() => setPhase('board')} aria-label="Leaderboard"><Laurel size={32} /></button>
       <h1>palette<span className={hard ? 'hd' : ''}>.</span></h1>
       <p className="lead">Good with colors? Let’s find out.</p>
       <p>See five shades, then mix each one from memory.</p>
       <div className="introbar">
         <div>
-          <b>{tip ? `One color. ${hard ? 'Two' : 'Four'} seconds.` : "Still sure you'll remember that shade?"}</b>
+          <b>
+            {tt ? (hard ? 'Two seconds. Go on, blink.' : "Four seconds. I'm being generous.")
+              : tip ? `One color. ${hard ? 'Two' : 'Four'} seconds.`
+              : "Still sure you'll remember that shade?"}
+          </b>
           <div className="row">
             <button className="round" onClick={() => start(false)} onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)} aria-label="Play solo">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-7 8-7s8 3 8 7" /></svg>
@@ -249,13 +305,26 @@ export default function Palette() {
               <span className="soonb">Soon</span>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="3" /><circle cx="5" cy="10" r="2" /><circle cx="19" cy="10" r="2" /><path d="M6 20c0-3 3-5 6-5s6 2 6 5" /></svg>
             </button>
-            <button className={'tog' + (hard ? ' on' : '')} role="switch" aria-checked={hard} onClick={() => setHard(h => !h)}><i /></button>
+            <button
+              className={'tog' + (hard ? ' on' : '')}
+              role="switch"
+              aria-checked={hard}
+              onClick={toggleHard}
+              onMouseEnter={() => setTt(true)}
+              onMouseLeave={() => setTt(false)}
+            ><i /></button>
             <span>{hard ? 'Hard' : 'Easy'}</span>
           </div>
         </div>
         <div className="dl">
           <b>Daily</b>
-          <button className="round daily" onClick={() => setPhase('daily')} aria-label="Open daily">{cal}</button>
+          <button
+            className="round daily"
+            onMouseEnter={() => setWig('d')}
+            onMouseLeave={() => setWig('')}
+            onClick={() => { setWig(''); setPhase('daily') }}
+            aria-label="Open daily"
+          >{cal}</button>
         </div>
       </div>
     </div>
@@ -270,7 +339,7 @@ export default function Palette() {
 
   if (phase === 'board') {
     const all = readBoard()
-    const rows = all.filter(r => r.mode === tab).sort((a, b) => b.score - a.score).slice(0, 50)
+    const rows = bestPerName(all.filter(r => inTab(r, tab))).slice(0, 50)
     return (
       <div className="intro lb">
         {closeX}
@@ -278,22 +347,28 @@ export default function Palette() {
         <p className="lbsub"><b>{all.length}</b> scores recorded</p>
         <div className="tabs">
           {['easy', 'hard', 'daily'].map(t => (
-            <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>
+            <button key={t} className={tab === t ? 'on' : ''} onClick={() => pickTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>
           ))}
         </div>
-        <ol className="rows">
-          {rows.length ? rows.map((r, k) => (
-            <li key={k + '-' + r.t} className={r.name === me ? 'me' : ''}>
-              <span>{k + 1}</span><b>{r.name}</b><em>{r.score.toFixed(2)}</em>
-            </li>
-          )) : <li className="empty">No scores yet. Play a round!</li>}
-        </ol>
+        <div className="lbbody">
+          {listLoad ? (
+            <div className="spin"><i /></div>
+          ) : (
+            <ol className="rows">
+              {rows.length ? rows.map((r, k) => (
+                <li key={r.name + '-' + r.t} className={r.name === me ? 'me' : ''}>
+                  <span>{k + 1}</span><b>{r.name}</b><em>{r.score.toFixed(2)}</em>
+                </li>
+              )) : <li className="empty">No scores yet. Play a round!</li>}
+            </ol>
+          )}
+        </div>
       </div>
     )
   }
 
   if (phase === 'daily') return (
-    <div className="intro dly">
+    <div className={'intro dly' + (hard ? ' hardfx' : '')}>
       <button className="x" onClick={() => setPhase('intro')} aria-label="Close">×</button>
       <div className="dmeta">
         <b>{dateStr}</b>

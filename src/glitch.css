@@ -1,0 +1,28 @@
+/* RGB-split burst: mu-flash ~0.32s inig toggle sa Easy <-> Hard.
+   Ang !important kay para mu-override ang .intro.hardfx loop sa index.css */
+.intro.glitch > * {
+  animation: rgbsplit 0.32s steps(1, end) both !important;
+  will-change: filter, transform;
+}
+.intro.glitch > *:nth-child(even) { animation-name: rgbsplit2 !important; }
+
+@keyframes rgbsplit {
+  0%   { filter: drop-shadow(-4px 0 0 #ff1744) drop-shadow(4px 0 0 #00e5ff); transform: translateX(-3px); }
+  20%  { filter: drop-shadow(5px 0 0 #ff1744) drop-shadow(-5px 0 0 #00e5ff); transform: translateX(4px); }
+  40%  { filter: drop-shadow(-3px 1px 0 #ff1744) drop-shadow(3px -1px 0 #00e5ff); transform: translateX(-1px); }
+  60%  { filter: drop-shadow(2px 0 0 #ff1744) drop-shadow(-2px 0 0 #00e5ff); transform: translateX(2px); }
+  80%  { filter: drop-shadow(-1px 0 0 #ff1744) drop-shadow(1px 0 0 #00e5ff); transform: none; }
+  100% { filter: none; transform: none; }
+}
+@keyframes rgbsplit2 {
+  0%   { filter: drop-shadow(4px 0 0 #ff1744) drop-shadow(-4px 0 0 #00e5ff); transform: translateX(3px); }
+  20%  { filter: drop-shadow(-5px 0 0 #ff1744) drop-shadow(5px 0 0 #00e5ff); transform: translateX(-4px); }
+  40%  { filter: drop-shadow(3px -1px 0 #ff1744) drop-shadow(-3px 1px 0 #00e5ff); transform: translateX(1px); }
+  60%  { filter: drop-shadow(-2px 0 0 #ff1744) drop-shadow(2px 0 0 #00e5ff); transform: translateX(-2px); }
+  80%  { filter: drop-shadow(1px 0 0 #ff1744) drop-shadow(-1px 0 0 #00e5ff); transform: none; }
+  100% { filter: none; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro.glitch > * { animation: none !important; }
+}

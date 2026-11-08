@@ -1,70 +1,176 @@
-/* Import AFTER index.css so these overrides win */
 html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+.allgames { display: none; }
 
-/* ---------- Tablet / phone ---------- */
 @media (max-width: 760px) {
-  header, main { padding-left: 16px; padding-right: 16px; }
-
-  /* Header: brand + tools on row 1, nav on row 2 */
-  header { flex-wrap: wrap; gap: 8px 12px; padding-top: 14px; padding-bottom: 8px; }
+  /* ---------- header: usa ka linya, "All games" puli sa nav ---------- */
+  header, main, .foot:not(.rc .foot) {
+    width: calc(100% - 32px);
+    padding-left: 0;
+    padding-right: 0;
+  }
+  header { flex-wrap: nowrap; gap: 10px; padding-top: 12px; padding-bottom: 8px; }
   .brand { margin-right: 0; }
-  .tools { margin-left: auto; gap: 4px; }
-  .trophy { width: 40px; height: 40px; }
-  .nav { order: 3; width: 100%; justify-content: space-between; }
-  .nav a, .nav .off { padding: 8px 12px; }
+  .nav { display: none; }
+  .allgames {
+    display: inline;
+    margin-right: auto;
+    font-size: .8rem;
+    font-weight: 600 !important;
+    color: var(--mut);
+    text-decoration: none;
+  }
+  .tools { margin-left: 0; gap: 2px; }
+  .trophy { width: 34px; height: 34px; }
 
-  /* Home: palette card, panels move below the text */
+  /* ---------- Home ---------- */
   .pal { min-height: 640px; padding: 24px; }
   .pp.pos0 { top: 175px; right: calc(50% - 105px); }
   .pp.pos1 { top: 200px; right: -150px; }
   .pp.pos2 { top: 200px; right: -300px; }
-
   .card h2 { font-size: 2rem; }
   .card.soon { min-height: 190px; }
-
-  /* Bests */
   .bests { padding: 20px 20px 10px; border-radius: 28px; }
   .bhead { flex-wrap: wrap; gap: 12px; }
 
-  /* Footer */
-  .foot { justify-content: center; text-align: center; }
-  .foot .fl { justify-content: center; }
+  /* ---------- Palette page: walay scroll, ang card mo-fill sa nahibilin nga luna ---------- */
+  html:has(.intro, .rcard),
+  html:has(.intro, .rcard) body { height: 100dvh; overflow: hidden; }
+  html:has(.intro, .rcard) #root {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  html:has(.intro, .rcard) main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  html:has(.intro, .rcard) .intro,
+  html:has(.intro, .rcard) .rcard {
+    flex: 1;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    margin: 4px 0 0;
+  }
+  html:has(.intro, .rcard) .intro.fin { overflow-y: auto; }
+
+  /* ---------- footer ---------- */
+  .foot:not(.rc .foot) {
+    justify-content: flex-end;
+    margin-top: 0;
+    padding-top: 8px;
+    padding-bottom: 14px;
+  }
 }
 
-/* ---------- Small phones ---------- */
 @media (max-width: 480px) {
-  /* Game screens (intro / daily / board / final) */
-  .intro { padding: 22px; min-height: 560px; border-radius: 28px; }
+  .intro { padding: 22px; border-radius: 28px; }
   .intro h1 { font-size: 3.8rem; }
   .intro .lead { white-space: normal; }
+  .intro .lead, .intro p { font-size: 1rem; max-width: none; }
   .laurel, button.laurel { top: 20px; right: 20px; }
-
   .introbar { gap: 12px; }
+  .introbar b { display: block; max-width: 190px; font-size: .78rem; }
   .introbar .row { gap: 10px; }
   .round { width: 54px; height: 54px; }
-  .round.daily { width: 64px; height: 64px; }
-
+  .round.daily { width: 62px; height: 62px; }
   .dbtns { gap: 8px; }
   .dbtns button, input.outl { height: 52px; }
   .outl { flex: 0 0 96px; }
   .past { right: 22px; bottom: 100px; }
-
-  /* Round cards: fit the screen height instead of a fixed 590px */
-  .rcard { height: min(590px, calc(100dvh - 170px)); min-height: 460px; border-radius: 24px; }
+  .rcard { border-radius: 24px; }
   .tl b { font-size: 3.2rem; }
   .sc2 b { font-size: 3.6rem; }
   .cnt h1 { font-size: 4.2rem; }
-
-  /* Final screen */
   .fin { padding: 22px; }
   .fin .score { font-size: 3.4rem; }
   .fin .cols { gap: 6px; }
-
-  /* Leaderboard */
   .lb .tabs button { padding: 8px 14px; }
-
-  /* Achievements modal */
   .ach { height: min(560px, 88dvh); padding: 22px 20px 0; border-radius: 20px; }
   .ach h2 { font-size: 26px; }
   .ach-x { top: 18px; right: 18px; }
+}
+
+/* =====================================================
+   MOBILE: Palette card full-screen, header + footer links sa sulod sa card
+   ===================================================== */
+@media (max-width: 760px) {
+  /* ang card mismo mo-fill sa tibuok screen */
+  html:has(.intro, .rcard) main {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    z-index: 0;
+  }
+  html:has(.intro, .rcard) .intro,
+  html:has(.intro, .rcard) .rcard {
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* intro lang: header ug footer links mulutaw sa ibabaw sa card */
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    width: 100%;
+    z-index: 5;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 0;
+    background: none;
+  }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .brand { color: #fff !important; }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .allgames { color: #ffffffb3; }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .icon { color: #fff; }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .trophy { background: none; color: #fff; }
+
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .intro {
+    padding-top: calc(76px + env(safe-area-inset-top, 0px));
+    padding-bottom: 56px;
+  }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .laurel,
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) button.laurel {
+    top: calc(76px + env(safe-area-inset-top, 0px));
+  }
+
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .foot:not(.rc .foot) {
+    position: fixed;
+    left: auto;
+    right: 20px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    margin: 0;
+    padding: 0;
+    z-index: 5;
+  }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .flinks { gap: 16px; }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .flinks button {
+    color: #ffffffb3;
+    font-size: .72rem;
+    font-weight: 600 !important;
+  }
+
+  /* ubang screens (game, leaderboard, daily, final): tagoa ang header/footer, full-screen ra ang card */
+  html:has(.rcard, .intro.lb, .intro.dly, .intro.fin) header,
+  html:has(.rcard, .intro.lb, .intro.dly, .intro.fin) .foot:not(.rc .foot) {
+    display: none;
+  }
+}
+
+/* MOBILE: tagoa ang header sa tanang Palette screens, card ra ang makita */
+@media (max-width: 760px) {
+  html:has(.intro, .rcard) header { display: none; }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .intro {
+    padding-top: calc(30px + env(safe-area-inset-top, 0px));
+  }
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .laurel,
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) button.laurel {
+    top: calc(28px + env(safe-area-inset-top, 0px));
+  }
 }

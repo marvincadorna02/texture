@@ -45,7 +45,8 @@ export default function App() {
   return (
     <>
       <header>
-        <Link className="brand" to="/"><img src="/texture.png" alt="" />TEXTURE</Link>
+        <Link className="brand" to="/"><img src="/texture.png" alt="" />Texture</Link>
+        <Link className="allgames" to="/">All games</Link>
         <nav className="nav" onMouseLeave={() => setHover(null)}>
           {NAV.map((n, i) =>
             n.to ? (
@@ -90,12 +91,7 @@ export default function App() {
           <Route path="/palette" element={<Palette />} />
         </Routes>
       </main>
-            <footer className="foot">
-        <div className="fl">
-          <img className="flogo" src="/texture.png" alt="" />
-          <b>TEXTURE</b>
-          <span className="copy"><strong>© {new Date().getFullYear()} Marvin Cadorna.</strong> All rights reserved.</span>
-        </div>
+      <footer className="foot">
         <nav className="flinks">
           <button>Privacy</button>
           <button>Support</button>
