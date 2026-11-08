@@ -1,0 +1,65 @@
+.sitefoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1100px; /* i-match sa width sa imong header/main */
+  margin: 40px auto 0;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b73;
+}
+.sitefoot.linksonly {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.fbrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fbrand img {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+.fname {
+  color: #2a2a30;
+}
+.fcopy {
+  margin-left: 6px;
+}
+.flinks {
+  display: flex;
+  gap: 20px;
+}
+.flinks button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.flinks button:hover {
+  color: #111;
+}
+
+[data-theme='dark'] .fname,
+[data-theme='dark'] .flinks button:hover {
+  color: #f2f2f4;
+}
+
+@media (max-width: 600px) {
+  .sitefoot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sitefoot.linksonly {
+    align-items: flex-end;
+  }
+}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { load, today } from '../lib/color'
 import Bests from '../components/Bests'
+import Footer from '../components/Footer'
 
 const soon = [
   ['sync.', 'Pick a song. Tap along, one layer at a time.'],
@@ -155,6 +156,7 @@ export default function Home() {
       </div>
 
       <Bests />
+      <Footer full />
     </>
   )
 }

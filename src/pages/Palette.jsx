@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { rgb, today, load, save } from '../lib/color'
 import Laurel from '../components/Laurel'
+import Footer from '../components/Footer'
 import '../glitch.css'
 
 const hsl = (h, s, l) => {
@@ -131,6 +132,14 @@ function Bar({ p, onP, style }) {
     </div>
   )
 }
+
+// card + Privacy/Support/About sa ubos (para sa intro, leaderboard, daily)
+const withFoot = card => (
+  <>
+    {card}
+    <Footer />
+  </>
+)
 
 export default function Palette() {
   const [phase, setPhase] = useState('intro')
@@ -342,7 +351,7 @@ export default function Palette() {
     </div>
   )
 
-  if (phase === 'intro') return (
+  if (phase === 'intro') return withFoot(
     <div className={'intro' + (hard ? ' hardfx' : '') + (glitch ? ' glitch' : '') + (wig ? ' wig wig-' + wig : '')}>
       <button className="laurel" onClick={() => setPhase('board')} aria-label="Leaderboard"><Laurel size={32} /></button>
       <h1>palette<span className={hard ? 'hd' : ''}>.</span></h1>
@@ -388,7 +397,7 @@ export default function Palette() {
     </div>
   )
 
-  if (phase === 'board' && lbLoad) return (
+  if (phase === 'board' && lbLoad) return withFoot(
     <div className="intro lb">
       {closeX}
       <div className="spin"><i /></div>
@@ -396,7 +405,7 @@ export default function Palette() {
   )
 
   if (phase === 'board') {
-    return (
+    return withFoot(
       <div className="intro lb">
         {closeX}
         <h2>leaderboards</h2>
@@ -423,7 +432,7 @@ export default function Palette() {
     )
   }
 
-  if (phase === 'daily') return (
+  if (phase === 'daily') return withFoot(
     <div className={'intro dly' + (hard ? ' hardfx' : '')}>
       <button className="x" onClick={() => setPhase('intro')} aria-label="Close">×</button>
       <div className="dmeta">

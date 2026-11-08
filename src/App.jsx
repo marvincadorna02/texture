@@ -91,13 +91,6 @@ export default function App() {
           <Route path="/palette" element={<Palette />} />
         </Routes>
       </main>
-      <footer className="foot">
-        <nav className="flinks">
-          <button>Privacy</button>
-          <button>Support</button>
-          <button>About</button>
-        </nav>
-      </footer>
     </>
   )
 }
