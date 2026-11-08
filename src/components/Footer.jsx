@@ -6,7 +6,7 @@ export default function Footer({ full = false }) {
         <div className="fbrand">
           <img src="/texture.png" alt="" />
           <span className="fname">Texture</span>
-          <span className="fcopy">© 2026 Marvin Cadornas. All rights reserved.</span>
+          <span className="fcopy">© 2026 Marvin Cadorna. All rights reserved.</span>
         </div>
       )}
       <nav className="flinks">
