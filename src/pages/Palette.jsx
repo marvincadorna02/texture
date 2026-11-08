@@ -45,6 +45,31 @@ const addScore = (name, score, diff, daily) => {
   } catch {}
 }
 
+// ---------- online leaderboard (Vercel /api/score) ----------
+const API = '/api/score'
+const dateKey = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+const submitOnline = async (name, score, mode) => {
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, score, mode, date: dateKey() }),
+    })
+    if (!r.ok) throw new Error('bad')
+    return await r.json()
+  } catch { return null }
+}
+const fetchBoard = async mode => {
+  try {
+    const r = await fetch(`${API}?mode=${mode}&date=${dateKey()}&limit=50`)
+    if (!r.ok) throw new Error('bad')
+    return (await r.json()).rows
+  } catch { return null }
+}
+
 // asa nga tab mo-gawas ang score
 // daily records dili na mo-apil sa easy/hard; ang walay "hard" kay easy
 const isDailyRec = r => !!(r.daily ?? r.mode === 'daily')
@@ -132,6 +157,8 @@ export default function Palette() {
   const [now, setNow] = useState(Date.now())
   const [copied, setCopied] = useState(false)
   const [place, setPlace] = useState(null)
+  const [rows, setRows] = useState([])
+  const [online, setOnline] = useState(true)
   const [tag, setTag] = useState(() => {
     try { return localStorage.getItem('dt_tag') || '' } catch { return '' }
   })
@@ -176,10 +203,24 @@ export default function Palette() {
   const pickTab = t => {
     if (t === tab) return
     setTab(t)
-    setListLoad(true)
-    clearTimeout(tabTimer.current)
-    tabTimer.current = setTimeout(() => setListLoad(false), 600)
   }
+
+  // kuhaa ang leaderboard gikan sa server (fallback: local sa device)
+  useEffect(() => {
+    if (phase !== 'board') return
+    let dead = false
+    setListLoad(true)
+    fetchBoard(tab).then(r => {
+      if (dead) return
+      if (r) { setRows(r); setOnline(true) }
+      else {
+        setRows(bestPerName(readBoard().filter(x => inTab(x, tab))).slice(0, 50))
+        setOnline(false)
+      }
+      setListLoad(false)
+    })
+    return () => { dead = true }
+  }, [phase, tab])
 
   const mid = new Date(now); mid.setHours(24, 0, 0, 0)
   const left = Math.max(0, mid - now)
@@ -252,7 +293,9 @@ export default function Palette() {
       const prev = bestPerName(readBoard().filter(r => inTab(r, tabKey)))
         .find(r => String(r.name).toLowerCase() === me.toLowerCase())
       addScore(me, score, hard ? 'hard' : 'easy', daily)
-      setPlace({ ...rankOf(me, tabKey), best: !prev || score > prev.score })
+      const localPlace = { ...rankOf(me, tabKey), best: !prev || score > prev.score }
+      setPlace(null)  // "Placing..." hangtod mabalik ang rank gikan sa server
+      submitOnline(me, score, tabKey).then(r => setPlace(r ? { rank: r.rank, of: r.of, best: r.best } : localPlace))
       if (daily) { const db = load(); db[today()] = { total: t.toFixed(2) }; save(db) }
       setPhase('final')
     } else { setI(i + 1); freshMix(); setPhase('count') }
@@ -353,13 +396,11 @@ export default function Palette() {
   )
 
   if (phase === 'board') {
-    const all = readBoard()
-    const rows = bestPerName(all.filter(r => inTab(r, tab))).slice(0, 50)
     return (
       <div className="intro lb">
         {closeX}
         <h2>leaderboards</h2>
-        <p className="lbsub"><b>{all.length}</b> scores recorded</p>
+        <p className="lbsub"><b>{rows.length}</b> {online ? 'players' : 'scores on this device (offline)'}</p>
         <div className="tabs">
           {['easy', 'hard', 'daily'].map(t => (
             <button key={t} className={tab === t ? 'on' : ''} onClick={() => pickTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>
