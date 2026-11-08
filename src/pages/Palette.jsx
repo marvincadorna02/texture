@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { rgb, today, load, save } from '../lib/color'
 import Laurel from '../components/Laurel'
 
@@ -25,8 +25,6 @@ const HUE = `linear-gradient(${[...Array(13)].map((_, k) => `hsl(${360 - k * 30}
 const WORDS = [['ready', '#ff4455'], ['set', '#f5c518'], ['go', '#2fbf4f']]
 const SAT = 65
 
-// Solo ug Daily: bag-o gyud nga colors kada pindot (Math.random, walay seed).
-// Ang 5 ka hue gi-spread para dili magkaduol, unya gi-shuffle.
 const randomColors = () => {
   const base = Math.random() * 360
   const hues = [...Array(5)].map((_, k) => (base + k * 72 + (Math.random() - 0.5) * 40 + 360) % 360)
@@ -85,11 +83,14 @@ export default function Palette() {
   const [hard, setHard] = useState(false)
   const [tip, setTip] = useState(false)
   const [tab, setTab] = useState('easy')
+  const [lbLoad, setLbLoad] = useState(false)
   const [daily, setDaily] = useState(false)
   const [targets, setTargets] = useState([])
   const [i, setI] = useState(0)
   const [wi, setWi] = useState(0)
   const [tl, setTl] = useState(4)
+  const [paused, setPaused] = useState(false)
+  const remRef = useRef(4)
   const [m, setM] = useState([0.3, 0.5])
   const [scores, setScores] = useState([])
   const [mixes, setMixes] = useState([])
@@ -99,6 +100,7 @@ export default function Palette() {
     try { return localStorage.getItem('dt_tag') || '' } catch { return '' }
   })
   const look = hard ? 2 : 4
+  const me = tag.trim() || 'YOU'
 
   const onTag = e => {
     const v = e.target.value.slice(0, 12)
@@ -110,6 +112,13 @@ export default function Palette() {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [])
+
+  useLayoutEffect(() => {
+    if (phase !== 'board') return
+    setLbLoad(true)
+    const t = setTimeout(() => setLbLoad(false), 900)
+    return () => clearTimeout(t)
+  }, [phase])
 
   const mid = new Date(now); mid.setHours(24, 0, 0, 0)
   const left = Math.max(0, mid - now)
@@ -123,32 +132,45 @@ export default function Palette() {
 
   const start = isDaily => {
     setTargets(randomColors())
-    setDaily(isDaily); setI(0); setScores([]); setMixes([]); freshMix(); setWi(0); setPhase('count')
+    setDaily(isDaily); setI(0); setScores([]); setMixes([]); freshMix(); setWi(0); setPaused(false); setPhase('count')
   }
 
+  // auto-pause kung mag-alt-tab o mag-switch og tab
   useEffect(() => {
-    if (phase !== 'count') return
-    setWi(0)
-    const a = setTimeout(() => setWi(1), 800)
-    const b = setTimeout(() => setWi(2), 1600)
-    const c = setTimeout(() => setPhase('show'), 2300)
-    return () => [a, b, c].forEach(clearTimeout)
+    if (phase !== 'count' && phase !== 'show') return
+    const pause = () => setPaused(true)
+    const onVis = () => { if (document.hidden) setPaused(true) }
+    window.addEventListener('blur', pause)
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.removeEventListener('blur', pause)
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [phase])
 
   useEffect(() => {
-    if (phase !== 'show') return
-    let raf, t0
+    if (phase !== 'count' || paused) return
+    setWi(0)
+    const a = setTimeout(() => setWi(1), 800)
+    const b = setTimeout(() => setWi(2), 1600)
+    const c = setTimeout(() => { remRef.current = look; setTl(look); setPhase('show') }, 2300)
+    return () => [a, b, c].forEach(clearTimeout)
+  }, [phase, paused, look])
+
+  useEffect(() => {
+    if (phase !== 'show' || paused) return
+    let raf, last
     const step = t => {
-      t0 ??= t
-      const rem = Math.max(0, look - (t - t0) / 1000)
-      setTl(rem)
-      if (rem <= 0) setPhase('mix')
+      last ??= t
+      remRef.current = Math.max(0, remRef.current - (t - last) / 1000)
+      last = t
+      setTl(remRef.current)
+      if (remRef.current <= 0) setPhase('mix')
       else raf = requestAnimationFrame(step)
     }
-    setTl(look)
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
-  }, [phase, i, look])
+  }, [phase, paused])
 
   const hue = 360 * (1 - m[0])
   const y = hsl(hue, SAT, 92 - m[1] * 80)
@@ -163,7 +185,7 @@ export default function Palette() {
   const next = () => {
     if (i === 4) {
       const t = scores.reduce((a, b) => a + b, 0)
-      addScore(daily ? 'daily' : hard ? 'hard' : 'easy', tag.trim() || 'YOU', +t.toFixed(2))
+      addScore(daily ? 'daily' : hard ? 'hard' : 'easy', me, +t.toFixed(2))
       if (daily) { const db = load(); db[today()] = { total: t.toFixed(2) }; save(db) }
       setPhase('final')
     } else { setI(i + 1); freshMix(); setPhase('count') }
@@ -186,7 +208,28 @@ export default function Palette() {
   }
 
   const cal = (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <rect x="3" y="5" width="18" height="16" rx="3" />
+    <path d="M8 3v4M16 3v4M3 10h18" />
+    <g className="cal-dots" fill="currentColor" stroke="none">
+      <circle cx="8" cy="14" r="1.1" /><circle cx="12" cy="14" r="1.1" /><circle cx="16" cy="14" r="1.1" />
+      <circle cx="8" cy="17.5" r="1.1" /><circle cx="12" cy="17.5" r="1.1" />
+    </g>
+  </svg>
+  )
+
+  const closeX = (
+    <button className="x" onClick={() => setPhase('intro')} aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><path d="M5 5l14 14M19 5L5 19" /></svg>
+    </button>
+  )
+
+  const pauseUI = paused && (
+    <div className="paused">
+      <h2>Ready when you are.</h2>
+      <p>Your color is waiting.</p>
+      <button onClick={() => setPaused(false)}>Continue</button>
+    </div>
   )
 
   if (phase === 'intro') return (
@@ -218,12 +261,19 @@ export default function Palette() {
     </div>
   )
 
+  if (phase === 'board' && lbLoad) return (
+    <div className="intro lb">
+      {closeX}
+      <div className="spin"><i /></div>
+    </div>
+  )
+
   if (phase === 'board') {
     const all = readBoard()
-    const rows = all.filter(r => r.mode === tab).sort((a, b) => b.score - a.score).slice(0, 20)
+    const rows = all.filter(r => r.mode === tab).sort((a, b) => b.score - a.score).slice(0, 50)
     return (
       <div className="intro lb">
-        <button className="x" onClick={() => setPhase('intro')} aria-label="Close">×</button>
+        {closeX}
         <h2>leaderboards</h2>
         <p className="lbsub"><b>{all.length}</b> scores recorded</p>
         <div className="tabs">
@@ -233,7 +283,9 @@ export default function Palette() {
         </div>
         <ol className="rows">
           {rows.length ? rows.map((r, k) => (
-            <li key={k + '-' + r.t}><span>{k + 1}</span><b>{r.name}</b><em>{r.score.toFixed(2)}</em></li>
+            <li key={k + '-' + r.t} className={r.name === me ? 'me' : ''}>
+              <span>{k + 1}</span><b>{r.name}</b><em>{r.score.toFixed(2)}</em>
+            </li>
           )) : <li className="empty">No scores yet. Play a round!</li>}
         </ol>
       </div>
@@ -266,6 +318,7 @@ export default function Palette() {
   if (phase === 'count') return (
     <div className="rcard cnt">
       <h1 key={wi}>{WORDS[wi][0]}<span style={{ color: WORDS[wi][1] }}>.</span></h1>
+      {pauseUI}
     </div>
   )
 
@@ -273,6 +326,7 @@ export default function Palette() {
     <div className="rcard" style={{ background: rgb(targets[i]), color: ink(targets[i]) }}>
       <div className="info"><small>{i + 1} / 5</small><p>Watch closely.</p></div>
       <div className="tl"><b>{tl.toFixed(2)}</b><small>Time left</small></div>
+      {pauseUI}
     </div>
   )
 
