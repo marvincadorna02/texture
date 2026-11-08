@@ -3,7 +3,7 @@ html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
 
 @media (max-width: 760px) {
   /* ---------- header: usa ka linya, "All games" puli sa nav ---------- */
-  header, main, .foot:not(.rc .foot) {
+  header, main, .sitefoot {
     width: calc(100% - 32px);
     padding-left: 0;
     padding-right: 0;
@@ -58,14 +58,6 @@ html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     margin: 4px 0 0;
   }
   html:has(.intro, .rcard) .intro.fin { overflow-y: auto; }
-
-  /* ---------- footer ---------- */
-  .foot:not(.rc .foot) {
-    justify-content: flex-end;
-    margin-top: 0;
-    padding-top: 8px;
-    padding-bottom: 14px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -97,7 +89,7 @@ html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
 }
 
 /* =====================================================
-   MOBILE: Palette card full-screen, header + footer links sa sulod sa card
+   MOBILE: Palette card full-screen, header + footer links mulutaw sa ibabaw sa card
    ===================================================== */
 @media (max-width: 760px) {
   /* ang card mismo mo-fill sa tibuok screen */
@@ -139,12 +131,14 @@ html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     top: calc(76px + env(safe-area-inset-top, 0px));
   }
 
-  html:has(.intro:not(.lb):not(.dly):not(.fin)) .foot:not(.rc .foot) {
+  /* Privacy / Support / About: floating sa ubos nga tuo sa sulod sa card */
+  html:has(.intro:not(.lb):not(.dly):not(.fin)) .sitefoot {
     position: fixed;
     left: auto;
     right: 20px;
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     width: auto;
+    max-width: none;
     margin: 0;
     padding: 0;
     z-index: 5;
@@ -158,19 +152,7 @@ html, body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
 
   /* ubang screens (game, leaderboard, daily, final): tagoa ang header/footer, full-screen ra ang card */
   html:has(.rcard, .intro.lb, .intro.dly, .intro.fin) header,
-  html:has(.rcard, .intro.lb, .intro.dly, .intro.fin) .foot:not(.rc .foot) {
+  html:has(.rcard, .intro.lb, .intro.dly, .intro.fin) .sitefoot {
     display: none;
-  }
-}
-
-/* MOBILE: tagoa ang header sa tanang Palette screens, card ra ang makita */
-@media (max-width: 760px) {
-  html:has(.intro, .rcard) header { display: none; }
-  html:has(.intro:not(.lb):not(.dly):not(.fin)) .intro {
-    padding-top: calc(30px + env(safe-area-inset-top, 0px));
-  }
-  html:has(.intro:not(.lb):not(.dly):not(.fin)) .laurel,
-  html:has(.intro:not(.lb):not(.dly):not(.fin)) button.laurel {
-    top: calc(28px + env(safe-area-inset-top, 0px));
   }
 }
