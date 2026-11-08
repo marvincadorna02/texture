@@ -1,7 +1,8 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { load } from '../lib/color'
 
 const readBoard = () => { try { return JSON.parse(localStorage.getItem('dt_board')) || [] } catch { return [] } }
+const readTag = () => { try { return (localStorage.getItem('dt_tag') || '').trim() || 'YOU' } catch { return 'YOU' } }
 
 const svg = { width: 18, height: 18, viewBox: '0 0 24 24' }
 const GAMES = [
@@ -23,21 +24,42 @@ const GAMES = [
   },
 ]
 
-function bestOf(game) {
+// daan nga records mahimong wala'y mode/diff, busa safe nga basahon
+const modeOf = r => (r.daily ?? r.mode === 'daily') ? 'daily' : (r.diff ?? r.mode) === 'hard' ? 'hard' : 'easy'
+
+// bests = imong pinakataas (imong tag ra), top = pinakataas sa tanan
+function bestOf(game, tab, me) {
   if (game !== 'palette') return null
-  const rows = readBoard().map(r => ({ mode: r.mode, name: r.name, score: r.score }))
-  Object.values(load()).forEach(v => rows.push({ mode: 'daily', name: '', score: +v.total }))
+  let rows = readBoard().map(r => ({ mode: modeOf(r), name: r.name, score: +r.score }))
+  Object.values(load() || {}).forEach(v => rows.push({ mode: 'daily', name: '', score: +v.total }))
+  rows = rows.filter(r => Number.isFinite(r.score))
+  if (tab === 'bests') rows = rows.filter(r => !r.name || String(r.name).toLowerCase() === me.toLowerCase())
   return rows.sort((a, b) => b.score - a.score)[0] || null
 }
 
 function Bests() {
   const [tab, setTab] = useState('bests')
+  const [, setTick] = useState(0)
+
+  // i-refresh kung mubalik sa tab/window o naay nausab sa storage
+  useEffect(() => {
+    const bump = () => setTick(t => t + 1)
+    window.addEventListener('focus', bump)
+    window.addEventListener('storage', bump)
+    return () => {
+      window.removeEventListener('focus', bump)
+      window.removeEventListener('storage', bump)
+    }
+  }, [])
+
+  const me = readTag()
+
   return (
     <section className="bests">
       <div className="bhead">
         <div>
-          <h3>Personal bests</h3>
-          <p>Your best, across every game.</p>
+          <h3>{tab === 'bests' ? 'Personal bests' : 'Top scores'}</h3>
+          <p>{tab === 'bests' ? 'Your best, across every game.' : 'The highest score for each game.'}</p>
         </div>
         <div className="seg" role="tablist">
           {['bests', 'top'].map(t => (
@@ -49,16 +71,17 @@ function Bests() {
       </div>
       <div className="bgrid">
         {GAMES.map(g => {
-          const b = bestOf(g.k)
-          const sub = !b ? 'Set your first best'
-            : tab === 'top' ? (b.name || 'YOU')
-            : b.mode[0].toUpperCase() + b.mode.slice(1)
+          const b = bestOf(g.k, tab, me)
+          const mode = b ? b.mode[0].toUpperCase() + b.mode.slice(1) : ''
+          const sub = !b ? (tab === 'top' ? 'No top score yet' : 'Set your first best')
+            : tab === 'top' ? `${b.name || 'YOU'} · ${mode}`
+            : mode
           return (
             <div className="bi" key={g.k}>
               <span className="bico" style={{ background: g.bg }}>{g.icon}</span>
               <div className="bt"><b>{g.k}</b><small>{sub}</small></div>
               <div className="bs"><b>{b ? b.score.toFixed(2) : '—'}</b><span>/ 50</span></div>
-              <div className="bl"><i style={{ width: b ? (b.score / 50) * 100 + '%' : 0, background: g.bar }} /></div>
+              <div className="bl"><i style={{ width: b ? Math.min(100, (b.score / 50) * 100) + '%' : 0, background: g.bar }} /></div>
             </div>
           )
         })}

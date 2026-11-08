@@ -45,11 +45,13 @@ const addScore = (name, score, diff, daily) => {
   } catch {}
 }
 
-// asa nga tab mo-gawas ang score (dili madoble ang daan nga records)
+// asa nga tab mo-gawas ang score
+// daily records dili na mo-apil sa easy/hard; ang walay "hard" kay easy
+const isDailyRec = r => !!(r.daily ?? r.mode === 'daily')
 const inTab = (r, tab) => {
-  const diff = r.diff ?? (r.mode === 'hard' ? 'hard' : r.mode === 'easy' ? 'easy' : null)
-  const isDaily = r.daily ?? r.mode === 'daily'
-  return tab === 'daily' ? isDaily : diff === tab
+  if (tab === 'daily') return isDailyRec(r)
+  if (isDailyRec(r)) return false
+  return ((r.diff ?? r.mode) === 'hard' ? 'hard' : 'easy') === tab
 }
 // usa ra ka row kada ngalan: ang pinakataas nga score
 const bestPerName = rows => {
@@ -60,6 +62,12 @@ const bestPerName = rows => {
     if (!cur || r.score > cur.score) best.set(key, r)
   }
   return [...best.values()].sort((a, b) => b.score - a.score)
+}
+// ikapila ang ngalan sa leaderboard sa maong tab
+const rankOf = (name, tab) => {
+  const rows = bestPerName(readBoard().filter(r => inTab(r, tab)))
+  const k = rows.findIndex(r => String(r.name).toLowerCase() === name.toLowerCase())
+  return { rank: k + 1, of: rows.length }
 }
 
 function useCountUp(target, run) {
@@ -123,6 +131,7 @@ export default function Palette() {
   const [mixes, setMixes] = useState([])
   const [now, setNow] = useState(Date.now())
   const [copied, setCopied] = useState(false)
+  const [place, setPlace] = useState(null)
   const [tag, setTag] = useState(() => {
     try { return localStorage.getItem('dt_tag') || '' } catch { return '' }
   })
@@ -184,7 +193,7 @@ export default function Palette() {
 
   const start = isDaily => {
     setTargets(randomColors())
-    setDaily(isDaily); setI(0); setScores([]); setMixes([]); freshMix(); setWi(0); setPaused(false); setPhase('count')
+    setDaily(isDaily); setI(0); setScores([]); setMixes([]); setPlace(null); freshMix(); setWi(0); setPaused(false); setPhase('count')
   }
 
   // auto-pause kung mag-alt-tab o mag-switch og tab
@@ -237,7 +246,13 @@ export default function Palette() {
   const next = () => {
     if (i === 4) {
       const t = scores.reduce((a, b) => a + b, 0)
-      addScore(me, +t.toFixed(2), hard ? 'hard' : 'easy', daily)
+      const score = +t.toFixed(2)
+      const tabKey = daily ? 'daily' : hard ? 'hard' : 'easy'
+      // pinakataas nimo nga score sa maong tab BAG-O pa dulaon
+      const prev = bestPerName(readBoard().filter(r => inTab(r, tabKey)))
+        .find(r => String(r.name).toLowerCase() === me.toLowerCase())
+      addScore(me, score, hard ? 'hard' : 'easy', daily)
+      setPlace({ ...rankOf(me, tabKey), best: !prev || score > prev.score })
       if (daily) { const db = load(); db[today()] = { total: t.toFixed(2) }; save(db) }
       setPhase('final')
     } else { setI(i + 1); freshMix(); setPhase('count') }
@@ -356,7 +371,7 @@ export default function Palette() {
           ) : (
             <ol className="rows">
               {rows.length ? rows.map((r, k) => (
-                <li key={r.name + '-' + r.t} className={r.name === me ? 'me' : ''}>
+                <li key={String(r.name).toLowerCase()} className={String(r.name).toLowerCase() === me.toLowerCase() ? 'me' : ''}>
                   <span>{k + 1}</span><b>{r.name}</b><em>{r.score.toFixed(2)}</em>
                 </li>
               )) : <li className="empty">No scores yet. Play a round!</li>}
@@ -442,7 +457,7 @@ export default function Palette() {
     <div className="intro fin">
       <button className="x" onClick={() => setPhase('intro')} aria-label="Close">×</button>
       <div className="fintop">
-        <b>Placing...</b>
+        <b>{place ? `Placing #${place.rank}` : 'Placing...'}</b>
         <span>Next daily: {hh}h {mm}m {ss}s</span>
       </div>
       <div className="score">{shownTotal.toFixed(2)}<span>/50</span></div>
@@ -466,7 +481,7 @@ export default function Palette() {
           </div>
         </div>
       </div>
-      <p className="finnote">Scores save automatically. Edit your tag.</p>
+      <p className="finnote">{place?.best ? 'New personal best! ' : ''}Scores save automatically. Edit your tag.</p>
       <div className="dbtns">
         <input className="outl" value={tag} onChange={onTag} placeholder="Tag" maxLength={12} aria-label="Your tag" />
         <button className="pd" onClick={share}>{copied ? 'Copied!' : 'Share your score'}</button>
